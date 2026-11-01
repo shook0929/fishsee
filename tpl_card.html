@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<style>
+  :root{ --orange:#FF7500; --paper:#F5F6F8; --muted:#8C93A3; }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:1280px;height:720px;overflow:hidden}
+  body{font-family:"Microsoft YaHei UI","Microsoft YaHei",system-ui,sans-serif;
+       background:#0B0D12;color:var(--paper);-webkit-font-smoothing:antialiased}
+
+  .bg{position:absolute;inset:0;
+    background:
+      radial-gradient(760px 480px at 8% -10%, rgba(255,117,0,.16), transparent 62%),
+      radial-gradient(680px 520px at 100% 108%, rgba(74,158,255,.14), transparent 62%),
+      linear-gradient(160deg,#10131A 0%, #0B0D12 46%, #090B0F 100%)}
+  .grid{position:absolute;inset:0;opacity:.18;
+    background-image:
+      linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
+    background-size:64px 64px;
+    -webkit-mask-image:radial-gradient(circle at 30% 40%, #000 30%, transparent 76%)}
+  .topline{position:absolute;left:0;top:0;height:5px;width:100%;
+    background:linear-gradient(90deg,#FF7500 0%,#FFA24A 30%,rgba(255,117,0,0) 70%)}
+
+  /* 角色：固定在右侧 */
+  .char{position:absolute;right:-10px;bottom:-14px;height:520px;z-index:2;
+    filter:drop-shadow(0 18px 40px rgba(0,0,0,.65))}
+  .charGlow{position:absolute;right:-70px;bottom:-70px;width:520px;height:520px;border-radius:50%;z-index:1;
+    background:radial-gradient(circle, rgba(74,158,255,.20), transparent 66%)}
+
+  /* 顶部固定栏（系列感） */
+  .bar{position:absolute;left:0;top:0;right:0;padding:26px 44px;display:flex;align-items:center;gap:14px;z-index:5;
+    font-size:16px;letter-spacing:.16em;color:#9AA1B0}
+  .bar b{color:var(--orange);font-weight:800;letter-spacing:.06em}
+  .bar .dot{width:7px;height:7px;border-radius:50%;background:var(--orange);box-shadow:0 0 12px 2px rgba(255,117,0,.7)}
+
+  .stage{position:absolute;left:64px;top:92px;bottom:42px;width:730px;z-index:4;display:flex;align-items:center}
+
+  /* 卡片容器 */
+  .card{max-height:560px;overflow:hidden;background:linear-gradient(180deg,#FBFCFE 0%, #EFF2F7 100%);color:#12151D;
+    border-radius:22px;padding:34px 38px;box-shadow:0 26px 60px rgba(0,0,0,.55), 0 2px 0 rgba(255,255,255,.6) inset;
+    position:relative}
+  .card:after{content:"";position:absolute;inset:0;border-radius:22px;border:1px solid rgba(255,255,255,.7);pointer-events:none}
+  .card .kicker{font-size:18px;letter-spacing:.14em;color:#8A91A0;margin-bottom:14px}
+  .card h2{font-size:44px;line-height:1.15;letter-spacing:-.01em;color:#0E1117}
+  .card .sub{margin-top:12px;font-size:23px;color:#5E6675;line-height:1.45}
+
+  /* 账单行 */
+  .rows{margin-top:12px}
+  .row{display:flex;justify-content:space-between;align-items:baseline;
+    padding:10px 4px;border-bottom:1px dashed #D3D9E3;font-size:24px;color:#2A3140}
+  .row:last-child{border-bottom:0}
+  .row .v{font-weight:900;font-size:32px;color:#0E1117;font-variant-numeric:tabular-nums}
+  .row.hot .v{color:#E85D00}
+
+  /* 对比卡 */
+  .vs{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:8px}
+  .vs .side{flex:1;text-align:center}
+  .vs .side .n{font-size:46px;font-weight:900;color:#0E1117;line-height:1}
+  .vs .side .l{margin-top:10px;font-size:19px;color:#7A8290}
+  .vs .mid{font-size:34px;color:var(--orange);font-weight:900}
+
+  /* 引用（评论）卡 */
+  .quote{background:linear-gradient(180deg,#191D27 0%, #141822 100%);color:#EDEFF3;border-radius:22px;padding:40px 44px;
+    min-height:230px;border:1px solid rgba(255,255,255,.10);position:relative;
+    box-shadow:0 26px 60px rgba(0,0,0,.6)}
+  .quote .who{font-size:18px;color:#8C93A3;margin-bottom:18px;letter-spacing:.02em}
+  .quote .txt{font-size:30px;line-height:1.62}
+  .quote .hl{color:var(--orange);font-weight:800}
+
+  /* 满屏情绪卡 */
+  .punch{position:absolute;left:60px;right:360px;top:70px;bottom:90px;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;z-index:6;text-align:center}
+  .punch .big{font-size:92px;font-weight:900;line-height:1.05;color:#fff;letter-spacing:.02em;
+    text-shadow:0 0 60px rgba(255,117,0,.5), 0 10px 30px rgba(0,0,0,.6)}
+  .punch .big em{font-style:normal;color:var(--orange)}
+  .punch .small{margin-top:26px;font-size:30px;color:#9AA1B0;letter-spacing:.1em}
+
+  /* 三连号召 */
+  .cta{display:flex;gap:16px;margin-top:22px}
+  .btn{flex:1;text-align:center;padding:20px 0;border-radius:16px;font-size:26px;font-weight:800;
+    background:#12151D;color:#fff;box-shadow:0 10px 26px rgba(0,0,0,.4)}
+  .btn.primary{background:linear-gradient(135deg,#FF7500,#FF9A3C);color:#1A1204}
+
+  .foot{position:absolute;left:64px;bottom:26px;font-size:15px;color:#69707E;letter-spacing:.06em;z-index:5}
+  .badge{position:absolute;right:44px;top:88px;z-index:6;background:rgba(255,117,0,.12);color:#FFB27A;
+    border:1px solid rgba(255,117,0,.35);border-radius:999px;padding:8px 16px;font-size:15px}
+</style>
+</head>
+<body>
+  <div class="bg"></div><div class="grid"></div><div class="topline"></div>
+  <div class="charGlow"></div>
+  <img class="char" src="../video/char_full.png">
+  <div class="bar"><span class="dot"></span><span><b>{{DAY}}</b> · AI 接管中 · 大肥鱼运营日志</span></div>
+  {{BADGE}}
+  {{BODY}}
+  <div class="foot">{{FOOT}}</div>
+</body>
+</html>
+
