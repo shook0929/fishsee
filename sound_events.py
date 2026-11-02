@@ -19,6 +19,7 @@ except Exception:
 import numpy as np
 import onnxruntime as ort
 from PIL import Image, ImageDraw, ImageFont
+from audio_util import ensure_audio
 
 HERE = Path(__file__).parent
 MODEL = HERE / "models" / "yamnet.onnx"
@@ -53,7 +54,19 @@ def load_wav(path: Path):
     return x
 
 
+def _require(path, what, hint):
+    if path.exists():
+        return
+    raise SystemExit(
+        f"\n[缺少 {what}] {path}\n"
+        f"  {hint}\n"
+        "  说明：这两个文件不随仓库分发（YAMNet 模型约 15 MB）。\n"
+        "  最省事的办法：先把它们放到上面的路径，再重跑本脚本。")
+
+
 def load_classes():
+    _require(CLASSES, "YAMNet 类目表",
+             "下载 yamnet_class_map.csv（TensorFlow Hub 的 yamnet 模型包里有这个文件）。")
     names = [""] * 521
     with open(CLASSES, encoding="utf-8") as f:
         for row in csv.DictReader(f):
@@ -76,7 +89,7 @@ def main() -> None:
     if len(sys.argv) < 2:
         sys.exit("用法: python sound_events.py <BV>")
     bv = sys.argv[1]
-    wav = HERE / "audio_out" / bv / "audio.wav"
+    wav = ensure_audio(bv)
     if not wav.exists():
         sys.exit(f"缺音频，先跑: python listen.py {bv}")
 
