@@ -18,36 +18,15 @@ except Exception:
 
 from PIL import Image, ImageDraw, ImageFont
 
+from audio_util import ensure_audio
+
 HERE = Path(__file__).parent
-BILI_PY = Path(r"C:\Users\shook\AppData\Roaming\uv\tools\bili-agent\Scripts\python.exe")
 SR = 16000
 WIN = 0.25  # 每 0.25 秒一个能量点
 
 
 def fmt(t: float) -> str:
     return f"{int(t)//60}:{int(t)%60:02d}"
-
-
-def get_url(bv: str) -> dict:
-    r = subprocess.run([str(BILI_PY), str(HERE / "audio_url.py"), bv],
-                       capture_output=True, text=True, encoding="utf-8", errors="replace")
-    try:
-        return json.loads(r.stdout.strip().splitlines()[-1])
-    except Exception:
-        return {"ok": False, "error": (r.stdout or r.stderr)[-200:]}
-
-
-def download(url: str, out: Path) -> bool:
-    ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
-    cmd = ["ffmpeg", "-y",
-           "-headers", "Referer: https://www.bilibili.com/\r\n",
-           "-user_agent", ua,
-           "-i", url, "-vn", "-ac", "1", "-ar", str(SR), "-f", "wav", str(out)]
-    r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
-    if r.returncode != 0 or not out.exists():
-        print("下载失败:", (r.stderr or "")[-200:])
-        return False
-    return True
 
 
 def envelope(path: Path):
@@ -155,15 +134,7 @@ def main() -> None:
     bv = sys.argv[1]
     outdir = HERE / "audio_out" / bv
     outdir.mkdir(parents=True, exist_ok=True)
-    wav = outdir / "audio.wav"
-
-    info = get_url(bv)
-    if not info.get("ok"):
-        sys.exit("取音频地址失败: " + str(info.get("error"))[:200])
-    if not wav.exists():
-        # ffmpeg 可能需要重新下载
-        if not download(info["url"], wav):
-            sys.exit("下载音频失败")
+    wav = ensure_audio(bv)          # 缺就自动下载（纯 HTTP，无需 bilibili-api）
 
     vals, dur = envelope(wav)
     norm, sil, mid, high, peaks, jumps = analyze(vals, dur)
