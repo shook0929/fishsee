@@ -17,6 +17,7 @@ import subprocess
 import sys
 import urllib.request
 from pathlib import Path
+from audio_util import ensure_audio
 
 try:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -54,7 +55,7 @@ def ts(s: str) -> float:
 
 
 def clip(bv: str, start: float, dur: float) -> Path:
-    src = HERE / "audio_out" / bv / "audio.wav"
+    src = ensure_audio(bv)
     if not src.exists():
         sys.exit(f"缺音频，先跑: python {HERE/'listen.py'} {bv}")
     out = HERE / "audio_out" / bv / f"clip_{int(start)}_{int(dur)}.wav"
