@@ -21,9 +21,8 @@ python -m venv .venv
 pip install pillow numpy onnxruntime edge-tts imageio-ffmpeg pyyaml
 
 # 3) 下载 ffmpeg（imageio-ffmpeg 自带，或自己装）
-# 4) B 站获取：用 bili-cli（开源）
-uv tool install bili-agent
-bili auth login
+# 4) B 站数据：本包自带 audio_util.py（纯 HTTP，不需要 bilibili-api）
+#    想拿弹幕/字幕再装：uv tool install bili-agent && bili auth login
 ```
 
 ## 六个脚本
@@ -65,7 +64,7 @@ python hear.py BV1BN411i7wB --window 3:30-3:45
 
 | 文件 | 大小 | 从哪来 |
 | --- | --- | --- |
-| `yamnet.onnx` | ~15 MB | TF Hub 的 YAMNet 转 ONNX，或用 `tf2onnx` 自己转 |
+| `yamnet.onnx` | ~15 MB | TF Hub 的 YAMNet 转 ONNX：下载 `yamnet` → `python -m tf2onnx.convert --saved-model ... --output yamnet.onnx`；或直接找现成的 ONNX 版本 |
 | `yamnet_class_map.csv` | ~50 KB | 与 YAMNet 同级目录 |
 
 没有它也能跑，只是少了"声音事件"这一层。
@@ -80,6 +79,20 @@ python hear.py BV1BN411i7wB --window 3:30-3:45
 ```
 
 廉价的替代：`qwen3-asr-flash` 只做转写（更便宜）。
+
+## 一定要带登录态（实测 4.6 倍差距）
+
+同一条视频的弹幕：**不带 cookie 只有 803 条，带上 4599 条**。
+
+弹幕峰值那一层靠的就是"观众在哪一秒炸了"，数据少 4 倍，结论基本等于没做。
+
+```powershell
+# 方式一：环境变量
+$env:BILI_COOKIE = "SESSDATA=xxx; bili_jct=xxx; buvid3=xxx"
+# 方式二：让 audio_util 自己读 %APPDATA%\bili-cli 里的凭证（跑过 bili auth login 就有）
+```
+
+音轨同理：匿名能拿到普通音质，登录后码率更高。
 
 ## 成本总结
 
@@ -110,3 +123,14 @@ python hear.py BV1BN411i7wB --window 3:30-3:45
 ## 授权
 
 随便用、随便改。出了事别找我，尤其是别拿它刷量。
+
+
+## 更新记录
+
+- **v1.1**（2026-11-02）按 @酱油路人丙0 的实测反馈修了四处：
+  1. 补上 `audio_util.py`，去掉对 `audio_url.py` + bilibili-api + 写死 venv 路径的依赖
+  2. 五个脚本不再要求"先跑过 listen.py"，缺音频自动补齐
+  3. `models/` 直接带 YAMNet 两个文件；缺文件时给明确提示，而不是裸 Traceback
+  4. README 补上 yamnet 出处、cookie 必要性（弹幕 803 → 4599）
+
+- **v1.0** 初版
