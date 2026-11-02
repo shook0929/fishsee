@@ -16,6 +16,7 @@ except Exception:
     pass
 
 import numpy as np
+from audio_util import ensure_audio
 
 HERE = Path(__file__).parent
 SR = 16000
@@ -83,9 +84,8 @@ def main() -> None:
         sys.exit("用法: python audio_vision.py <BV>")
     bv = sys.argv[1]
     d = HERE / "audio_out" / bv
-    wav = d / "audio.wav"
-    if not wav.exists():
-        sys.exit(f"缺音频，请先跑 listen.py {bv}")
+    d.mkdir(parents=True, exist_ok=True)
+    wav = ensure_audio(bv)   # 缺就自动下载，不再要求先跑 listen.py
 
     x, sr = load(wav)
     r = analyze(x, sr)
